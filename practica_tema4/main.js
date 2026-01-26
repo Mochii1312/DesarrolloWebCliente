@@ -81,5 +81,47 @@ function mostrarFormulario(){
 }
 
 function gestionTablero(){
+    const contenedor = document.getElementById("tab");
+    contenedor.textContent = " ";
+
+    const table = document.createElement("div");
+    table.className = "Tablero kanban";
+
+    tableroData.columnas.forEach((col, colIndex) =>{
+        const divColumna = document.createElement("div");
+        divColumna.className = "columna";
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = `${col.titulo} (${col.tareas.length}/${col.limite})`;
+
+        const listaTareas = document.createElement("div");
+        listaTareas.className = "listaTareas";
+        listaTareas.style.minHeight = "50px";
+
+        col.tareas.forEach((tarea, taskIdx) => {
+            const tDiv = document.createElement("div");
+            tDiv.className = "task";
+            tDiv.draggable = true;
+            tDiv.textContent = tarea;
+
+            const btnDel = document.createElement("button");
+            btnDel.textContent = "X";
+            btnDel.className = "Eliminar";
+            btnDel.onclick = () => {
+                tableroData.columnas[colIndex].tareas.splice(taskIdx, 1);
+                guardarCambios();
+                renderizarTablero();
+            };
+
+            tDiv.ondragstart = (e) => {
+                e.dataTransfer.setData("text", JSON.stringify({ colIndex, taskIdx }));
+            };
+
+            tDiv.appendChild(btnDel);
+            listaTareas.appendChild(tDiv);
+        });
+
+
+    })
     
 }
