@@ -1,127 +1,174 @@
-let datosTablero = { columnas: []};
 
-document.addEventListener("DOMContentLoaded", () =>{
-    const guardarDatos =localStorage.getItem("tablero");
+let dataTablero = { columnas: [] };
 
-    if(guardarDatos){
-        datosTablero = JSON.parse(guardarDatos);
-        gestionTablero();
-    }else{
-        mostrarFormulario();
+document.addEventListener('DOMContentLoaded', () => {
+    const backup = localStorage.getItem('kanban_storage');
+    if (backup) {
+        dataTablero = JSON.parse(backup);
+        mostrarTablero();
+    } else {
+        formulario();
     }
 });
 
-function guardar(){
-    localStorage.setItem("tablero", JSON.stringify(datos));
+function guardarCambios() {
+    localStorage.setItem('kanban_storage', JSON.stringify(dataTablero));
 }
 
-function mostrarFormulario(){
-    const contenedor =document.getElementById("tab");
-    contenedor.textContent = "";
 
-    const divConfiguracion = document.createElement("div");
-    divConfiguracion.className = "configContenedor";
+function formulario() {
+    const container = document.getElementById('app');
+    container.textContent = ''; 
 
-    const h2 = document.createElement("h2");
-    h2.textContent = "Configuracion del tablero";
+    const divConfig = document.createElement('div');
+    divConfig.className = 'configuracionContainer';
 
-    const p = document.createElement("p")
-    p.textContent = "Introduce el numero de columnas que quieres";
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Configuración del Tablero';
 
-    const inputNumero = document.createElement("input");
-    inputNumero.type = "number";
-    inputNumero.min = 1;
-    inputNumero.max = 6;
-    inputNumero.value = 3;
+    const p = document.createElement('p');
+    p.textContent = 'Indica el número de columnas:';
 
-    const crearColumnas = document.createElement("div");
+    const numeroCol = document.createElement('input');
+    numeroCol.type = 'number';
+    numeroCol.min = 1;
+    numeroCol.max = 6;
+    numeroCol.value = 3;
 
-    const generarColumnas = () =>{
-        crearColumnas.textContent = " ";
-        for(let i = 0; i < inputNumero.value; i++){
-            const columns = document.createElement("div");
-            columns.className = "configColumnas";
+    const wrapperColumnas = document.createElement('div');
 
-            const nombreColumnas = document.createElement("input");
-            nombreColumnas.className = "nombreColumna";
-            nombreColumnas.placeholder = `Nombre columna ${i + 1}`;
 
-            const limiteColumnas = document.createElement("input");
-            limiteColumnas.type = "number";
-            limiteColumnas.className = "limiteColumns"
-            limiteColumnas.placeholder = "Limite de tareas";
-            limiteColumnas.value = 5;
+    const generarInputsColumnas = () => {
+        wrapperColumnas.textContent = '';
+        for (let i = 0; i < numeroCol.value; i++) {
+            const grupoCol = document.createElement('div');
+            grupoCol.className = 'configuracionGrupo';
 
-            columns.append(nombreColumnas, limiteColumnas);
-            crearColumnas.appendChild(columns);
+            const nombre = document.createElement('input');
+            nombre.className = 'nombreCol';
+            nombre.placeholder = `Nombre Columna ${i + 1}`;
+            
+            const limite = document.createElement('input');
+            limite.type = 'number';
+            limite.className = 'limiteCol';
+            limite.placeholder = 'Límite tareas';
+            limite.value = 5;
+
+            grupoCol.append(nombre, limite);
+            wrapperColumnas.appendChild(grupoCol);
         }
     };
-    inputNumero.addEventListener("change" , generarColumnas);
-    generarColumnas();
 
-    const botonEnviar = document.createElement("boton");
-    botonEnviar.textContent = "Crear tablero";
-    botonEnviar.onclick = () =>{
-        const nombres = document.querySelectorAll(".nombreColumna");
-        const limite = document.querySelectorAll(".limeteColumns");
+    numeroCol.addEventListener('change', generarInputsColumnas);
+    generarInputsColumnas();
 
-        datosTablero.columnas = Array.from(nombres).map((inp, i) =>({
-            id: 1,
+    const btnEnviar = document.createElement('button');
+    btnEnviar.textContent = 'Crear Tablero';
+    btnEnviar.onclick = () => {
+        const nombres = document.querySelectorAll('.nombreCol');
+        const limites = document.querySelectorAll('.limiteCol');
+        
+        dataTablero.columnas = Array.from(nombres).map((inp, i) => ({
+            id: i,
             titulo: inp.value || `Columna ${i + 1}`,
-            limit: parseInt(limite[i].value) || 5,
+            limite: parseInt(limites[i].value) || 5,
             tareas: []
-            
         }));
-        guardar();
-        mostrarFormulario();
+
+        guardarCambios();
+        mostrarTablero();
     };
 
-    columns.append(h2, p, inputNumero, crearColumnas, botonEnviar);
-    contenedor.appendChild(columns);
+    divConfig.append(h2, p, numeroCol, wrapperColumnas, btnEnviar);
+    container.appendChild(divConfig);
 }
 
-function gestionTablero(){
-    const contenedor = document.getElementById("tab");
-    contenedor.textContent = " ";
 
-    const table = document.createElement("div");
-    table.className = "Tablero kanban";
+function mostrarTablero() {
+    const container = document.getElementById('app');
+    container.textContent = '';
 
-    tableroData.columnas.forEach((col, colIndex) =>{
-        const divColumna = document.createElement("div");
-        divColumna.className = "columna";
+    const tab = document.createElement('div');
+    tab.className = 'tablero-Kangan';
 
-        const titulo = document.createElement("h3");
+    dataTablero.columnas.forEach((col, indexCol) => {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'column';
+        
+        const titulo = document.createElement('h3');
         titulo.textContent = `${col.titulo} (${col.tareas.length}/${col.limite})`;
 
-        const listaTareas = document.createElement("div");
-        listaTareas.className = "listaTareas";
-        listaTareas.style.minHeight = "50px";
+        const listaTareas = document.createElement('div');
+        listaTareas.className = 'lista';
+        listaTareas.style.minHeight = '50px';
 
-        col.tareas.forEach((tarea, taskIdx) => {
-            const tDiv = document.createElement("div");
-            tDiv.className = "task";
-            tDiv.draggable = true;
-            tDiv.textContent = tarea;
 
-            const btnDel = document.createElement("button");
-            btnDel.textContent = "X";
-            btnDel.className = "Eliminar";
-            btnDel.onclick = () => {
-                tableroData.columnas[colIndex].tareas.splice(taskIdx, 1);
+        col.tareas.forEach((tarea, tareaIndex) => {
+            const divTarea = document.createElement('div');
+            divTarea.className = 'task';
+            divTarea.draggable = true;
+            divTarea.textContent = tarea;
+
+            const boton = document.createElement('button');
+            boton.textContent = 'X';
+            boton.className = 'eliminar';
+            boton.onclick = () => {
+                dataTablero.columnas[indexCol].tareas.splice(tareaIndex, 1);
                 guardarCambios();
-                renderizarTablero();
+                mostrarTablero();
             };
 
-            tDiv.ondragstart = (e) => {
-                e.dataTransfer.setData("text", JSON.stringify({ colIndex, taskIdx }));
+
+            divTarea.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ indexCol, tareaIndex }));
             };
 
-            tDiv.appendChild(btnDel);
-            listaTareas.appendChild(tDiv);
+            divTarea.appendChild(boton);
+            listaTareas.appendChild(divTarea);
         });
 
+        colDiv.ondragover = (e) => { e.preventDefault(); colDiv.classList.add('drag-over'); };
+        colDiv.ondragleave = () => colDiv.classList.remove('drag-over');
+        colDiv.ondrop = (e) => {
+            e.preventDefault();
+            colDiv.classList.remove('drag-over');
+            const info = JSON.parse(e.dataTransfer.getData('text/plain'));
+            
+            if (indexCol !== info.indexCol && col.tareas.length < col.limite) {
+                const tareaMovida = dataTablero.columnas[info.indexCol].tareas.splice(info.tareaIndex, 1)[0];
+                col.tareas.push(tareaMovida);
+                guardarCambios();
+                mostrarTablero();
+            }
+        };
 
-    })
-    
+ 
+        const nuevaTarea = document.createElement('input');
+        nuevaTarea.placeholder = 'Nueva tarea...';
+        const botonAñadir = document.createElement('button');
+        botonAñadir.textContent = '+';
+        botonAñadir.onclick = () => {
+            if (nuevaTarea.value.trim() && col.tareas.length < col.limite) {
+                col.tareas.push(nuevaTarea.value.trim());
+                guardarCambios();
+                mostrarTablero();
+            }
+        };
+
+        colDiv.append(titulo, listaTareas, nuevaTarea, botonAñadir);
+        tab.appendChild(colDiv);
+    });
+
+ 
+    const botonReset = document.createElement('button');
+    botonReset.textContent = 'Reiniciar todo';
+    botonReset.style.backgroundColor = '#6c757d';
+    botonReset.onclick = () => {
+        if(confirm("¿Seguro?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    };
+
+    container.append(tab, botonReset);
 }
